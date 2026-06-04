@@ -1,0 +1,26 @@
+{
+  "name": "mfe-gp",
+  "version": "1.0.0",
+  "description": "BTI MFE — GP Graph & Chart Plotter panel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev":     "vite --host 0.0.0.0 --port 3002",
+    "build":   "vite build",
+    "preview": "vite preview --port 3002"
+  },
+  "dependencies": {
+    "react":               "^18.3.1",
+    "react-dom":           "^18.3.1",
+    "lightweight-charts":  "^4.2.0",
+    "date-fns":            "^3.6.0"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.3.6",
+    "@vitejs/plugin-react":            "^4.3.1",
+    "@types/react":                    "^18.3.3",
+    "@types/react-dom":                "^18.3.0",
+    "typescript":                      "^5.4.5",
+    "vite":                            "^5.4.1"
+  }
+}

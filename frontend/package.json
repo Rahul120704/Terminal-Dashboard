@@ -1,0 +1,79 @@
+{
+  "name": "financial-dashboard",
+  "version": "1.0.0",
+  "description": "Financial Dashboard for Indian markets (NSE/BSE)",
+  "private": true,
+  "main": "electron-dist/main.js",
+  "dependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "lightweight-charts": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7",
+    "rxjs": "^7.8.2",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.2.1",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1",
+    "vite": "^5.4.1",
+    "wait-on": "^9.0.10"
+  },
+  "scripts": {
+    "start": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mfe:deploy": "node scripts/deploy-mfe.mjs",
+    "electron:compile": "tsc -p tsconfig.electron.json",
+    "electron:gpu": "node scripts/set-gpu-pref.js",
+    "electron:dev": "concurrently -k -n VITE,ELECTRON -c cyan,yellow \"vite\" \"wait-on http://localhost:3000 && npm run electron:compile && npm run electron:gpu && electron .\"",
+    "electron:build": "npm run build && npm run electron:compile && electron-builder",
+    "electron:start": "npm run electron:compile && npm run electron:gpu && electron ."
+  },
+  "build": {
+    "appId": "com.fd.terminal",
+    "productName": "Financial Dashboard",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "build/**/*",
+      "electron-dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Financial Dashboard"
+    }
+  }
+}
