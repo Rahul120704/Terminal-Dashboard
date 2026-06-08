@@ -847,6 +847,8 @@ const PanelRouter = memo<PanelRouterProps>((props) => {
       {/* ── Bloomberg New Panels ─────────────────────────────────────── */}
       {v === 'peers'        && <PeerComparisonPanel symbol={selectedTicker} onSelectTicker={onSelectTicker} />}
       {v === 'analyst'      && <AnalystEstimatesPanel symbol={selectedTicker} />}
+      {v === 'company-overview' && <CompanyOverview symbol={selectedTicker} onNavigate={onNavigate} />}
+      {v === 'concall'      && <ConcallPanel symbol={selectedTicker} />}
       {v === 'shareholding' && <ShareholdingPanel symbol={selectedTicker} />}
       {v === 'corp-actions' && <CorporateActionsPanel symbol={selectedTicker} />}
       {v === 'block-deals'  && <BlockBulkDealsPanel onSelectTicker={onSelectTicker} />}

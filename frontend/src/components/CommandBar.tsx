@@ -32,7 +32,7 @@ const COMMANDS: Cmd[] = [
   // FA — Financial Analysis
   { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*fa$/i, handler: (m) => ({ view: 'fundamentals', ticker: m[1], desc: 'Financial Analysis' }) },
   // DES — Company Description
-  { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*des$/i, handler: (m) => ({ view: 'company', ticker: m[1], desc: 'Company Overview (DES)' }) },
+  { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*des$/i, handler: (m) => ({ view: 'company-overview', ticker: m[1], desc: 'Company Overview (DES)' }) },
   // CN — Company News
   { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*cn$/i, handler: (m) => ({ view: 'news', ticker: m[1], desc: 'Company News' }) },
   // GP — Chart/Graph
@@ -48,7 +48,7 @@ const COMMANDS: Cmd[] = [
   // OWN — Ownership/Shareholding
   { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*own$/i, handler: (m) => ({ view: 'shareholding', ticker: m[1], desc: 'Ownership/Shareholding' }) },
   // MGMT — Management
-  { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*mgmt$/i, handler: (m) => ({ view: 'company', ticker: m[1], desc: 'Management' }) },
+  { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*mgmt$/i, handler: (m) => ({ view: 'company-overview', ticker: m[1], desc: 'Management' }) },
   // DDIS — Dividend/Corporate Actions
   { pattern: /^(\w[\w&.-]*)?\s*(?:<equity>|eq)?\s*ddis$/i, handler: (m) => ({ view: 'corp-actions', ticker: m[1], desc: 'Dividends & Corporate Actions' }) },
   // DCF — Discounted Cash Flow

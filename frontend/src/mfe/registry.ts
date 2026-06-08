@@ -97,7 +97,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   OVME: {
     url: '', scope: '', module: '',
-    internalRoute: 'iv-surface',
+    internalRoute: 'ivsurf',
     metadata: { name: 'Option Valuation', mnemonic: 'OVME', description: 'BSM pricing & IV surface', version: '1.0.0', category: 'DERIVATIVES' },
   },
   YCRV: {
@@ -107,17 +107,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   CBR: {
     url: '', scope: '', module: '',
-    internalRoute: 'rate-hike',
+    internalRoute: 'wirp',
     metadata: { name: 'RBI Rate Monitor', mnemonic: 'CBR', description: 'MPC rate decisions & implied repo', version: '1.0.0', category: 'FIXED_INCOME' },
   },
   WIRP: {
     url: '', scope: '', module: '',
-    internalRoute: 'rate-hike',
+    internalRoute: 'wirp',
     metadata: { name: 'Rate Hike Probability', mnemonic: 'WIRP', description: 'Implied probability of RBI rate changes', version: '1.0.0', category: 'FIXED_INCOME' },
   },
   ECO: {
     url: '', scope: '', module: '',
-    internalRoute: 'economic-calendar',
+    internalRoute: 'calendar',
     metadata: { name: 'Economic Calendar', mnemonic: 'ECO', description: 'MOSPI CPI/IIP/GDP releases & global events', version: '1.0.0', category: 'MACRO' },
   },
   BTMM: {
@@ -157,7 +157,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   CGOV: {
     url: '', scope: '', module: '',
-    internalRoute: 'company-overview',
+    internalRoute: 'company-overview',  // rendered in PanelRouter as v === 'company-overview'
     metadata: { name: 'Corporate Governance', mnemonic: 'CGOV', description: 'Board structure, promoter stakes & MCA filings', version: '1.0.0', category: 'CORP_GOVERNANCE' },
   },
   CACS: {
@@ -167,7 +167,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   HF: {
     url: '', scope: '', module: '',
-    internalRoute: 'hedge-fund',
+    internalRoute: 'hf',
     metadata: { name: 'Hedge Fund Signals', mnemonic: 'HF', description: 'AI-driven positioning & signal attribution', version: '1.0.0', category: 'PORTFOLIO' },
   },
   PORT: {
@@ -177,7 +177,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   AI: {
     url: '', scope: '', module: '',
-    internalRoute: 'ai-copilot',
+    internalRoute: 'copilot',
     metadata: { name: 'AI Copilot', mnemonic: 'AI', description: 'Claude-powered terminal assistant', version: '1.0.0', category: 'ALT_DATA' },
   },
   CLIM: {
@@ -187,7 +187,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   SUPP: {
     url: '', scope: '', module: '',
-    internalRoute: 'supply-chain',
+    internalRoute: 'splc',
     metadata: { name: 'Supply Chain', mnemonic: 'SUPP', description: 'Tier 1/2 dependency mapping', version: '1.0.0', category: 'ALT_DATA' },
   },
   BT: {
