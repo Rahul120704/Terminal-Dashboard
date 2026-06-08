@@ -189,7 +189,7 @@ const PanelSkeleton: React.FC<{ label?: string }> = ({ label }) => (
   </div>
 );
 
-// ─── Clock (memoised — only re-renders every second on its own) ─────────────
+// ─── Clock ──────────────────────────────────────────────────────────────────
 const Clock = memo(() => {
   const [time, setTime] = useState(() => new Date());
   useEffect(() => {
@@ -203,83 +203,88 @@ const Clock = memo(() => {
   const isMarketOpen = useMemo(() => {
     const h = ist.getHours(), m = ist.getMinutes();
     const mins = h * 60 + m;
-    return mins >= 555 && mins <= 930; // 09:15 – 15:30
+    return mins >= 555 && mins <= 930;
   }, [ist]);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-      <span style={{ fontSize: 10, color: isMarketOpen ? 'var(--green)' : 'var(--text-muted)' }}>
-        {isMarketOpen ? '● NSE OPEN' : '○ NSE CLOSED'}
+    <div className="bti-clock">
+      <span style={{ color: isMarketOpen ? 'var(--green)' : 'var(--text-muted)', marginRight: 6, fontSize: 10 }}>
+        {isMarketOpen ? '● OPEN' : '○ CLOSED'}
       </span>
-      <span style={{ color: 'var(--amber)', fontWeight: 700, fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-        {ist.toLocaleTimeString('en-IN', { hour12: false })}
-      </span>
-      <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>IST</span>
+      {ist.toLocaleTimeString('en-IN', { hour12: false })}
+      <span style={{ color: 'var(--text-muted)', marginLeft: 4, fontSize: 10 }}>IST</span>
     </div>
   );
 });
 
 // ─── Sidebar component ───────────────────────────────────────────────────────
 interface SidebarProps {
-  activeSection: Section;
   activeView: string;
   selectedTicker: string;
   selectedQuote: Quote | null;
-  onSectionChange: (s: Section) => void;
+  collapsed: boolean;
+  onCollapse: (v: boolean) => void;
   onViewChange: (id: string) => void;
 }
 
+const SECTION_ORDER: { key: Section; label: string }[] = [
+  { key: 'MKTS', label: 'Markets' },
+  { key: 'ANLT', label: 'Analytics' },
+  { key: 'AI',   label: 'AI Tools' },
+];
+
 const Sidebar = memo<SidebarProps>(({
-  activeSection, activeView, selectedTicker, selectedQuote,
-  onSectionChange, onViewChange,
-}) => {
-  const section = SIDEBAR[activeSection];
-  return (
-    <div className="bti-sidebar">
-      {/* 3 section buttons */}
-      <div className="bti-section-btns">
-        {(Object.keys(SIDEBAR) as Section[]).map(s => (
-          <button
-            key={s}
-            className={`bti-section-btn${activeSection === s ? ' active' : ''}`}
-            onClick={() => onSectionChange(s)}
-          >
-            {s === 'MKTS' ? 'MARKETS' : s === 'ANLT' ? 'ANALYTICS' : 'AI'}
-          </button>
-        ))}
-      </div>
-
-      {/* Selected ticker badge */}
-      {selectedTicker && (
-        <div className="bti-ticker-badge" onClick={() => onViewChange('chart')} style={{ cursor: 'pointer' }}>
-          <div className="sym">{selectedTicker}</div>
-          {selectedQuote && (
-            <>
-              <div className="prc">₹{fmtPrice(selectedQuote.price)}</div>
-              <div className="chg" style={{ color: selectedQuote.change_pct >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                {selectedQuote.change_pct >= 0 ? '▲' : '▼'}{Math.abs(selectedQuote.change_pct).toFixed(2)}%
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Nav items */}
-      <div className="bti-nav-list">
-        {section.items.map(item => (
-          <div
-            key={item.id}
-            className={`bti-nav-item${activeView === item.id ? ' active' : ''}`}
-            onClick={() => onViewChange(item.id)}
-          >
-            <span className="bti-nav-icon">{item.icon}</span>
-            <span className="bti-nav-label">{item.label}</span>
-            {item.kbd && <span className="bti-nav-kbd">{item.kbd}</span>}
-          </div>
-        ))}
-      </div>
+  activeView, selectedTicker, selectedQuote, collapsed, onCollapse, onViewChange,
+}) => (
+  <div className={`bti-sidebar${collapsed ? ' collapsed' : ''}`}>
+    {/* Top: brand + collapse toggle */}
+    <div className="bti-sidebar-top">
+      {!collapsed && <span className="bti-sidebar-brand">BTI</span>}
+      <button
+        className="bti-collapse-btn"
+        onClick={() => onCollapse(!collapsed)}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? '›' : '‹'}
+      </button>
     </div>
-  );
-});
+
+    {/* Ticker badge */}
+    {selectedTicker && (
+      <div className="bti-ticker-badge" onClick={() => onViewChange('chart')}>
+        <div className="sym">{selectedTicker}</div>
+        {!collapsed && selectedQuote && (
+          <>
+            <div className="prc">₹{fmtPrice(selectedQuote.price)}</div>
+            <div className="chg" style={{ color: selectedQuote.change_pct >= 0 ? 'var(--green)' : 'var(--red)' }}>
+              {selectedQuote.change_pct >= 0 ? '▲' : '▼'}{Math.abs(selectedQuote.change_pct).toFixed(2)}%
+            </div>
+          </>
+        )}
+      </div>
+    )}
+
+    {/* All sections in one scrollable list */}
+    <div className="bti-nav-list">
+      {SECTION_ORDER.map(({ key, label }) => (
+        <React.Fragment key={key}>
+          <div className="bti-nav-section">{label}</div>
+          {SIDEBAR[key].items.map(item => (
+            <div
+              key={item.id}
+              className={`bti-nav-item${activeView === item.id ? ' active' : ''}`}
+              onClick={() => onViewChange(item.id)}
+              title={collapsed ? item.label : undefined}
+            >
+              <span className="bti-nav-icon">{item.icon}</span>
+              <span className="bti-nav-label">{item.label}</span>
+              {item.kbd && !collapsed && <span className="bti-nav-kbd">{item.kbd}</span>}
+            </div>
+          ))}
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
+));
 
 // ─── Main Terminal ────────────────────────────────────────────────────────────
 export const Terminal: React.FC = () => {
@@ -300,8 +305,8 @@ export const Terminal: React.FC = () => {
   const [wsConnected, setWsConnected]     = useState(false);
   const [fyersAuth, setFyersAuth]         = useState<boolean | null>(null);
   const [deepDiveOpen, setDeepDiveOpen]   = useState(false);
-  // MFE-layer state: activeMnemonic tracks the CLI breadcrumb; activeMfeKey is
-  // the registry key for the currently mounted remote panel (null = internal panel).
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [cmdPaletteOpen, setCmdPaletteOpen]     = useState(false);
   const [activeMnemonic, setActiveMnemonic] = useState<string>('');
   const [activeMfeKey, setActiveMfeKey]     = useState<string>('');
 
@@ -551,10 +556,16 @@ export const Terminal: React.FC = () => {
   useEffect(() => {
     const allItems = Object.values(SIDEBAR).flatMap(s => s.items);
     const handler = (e: KeyboardEvent) => {
-      // Ctrl+/ → open Deep Dive search overlay (works from anywhere)
+      // Ctrl+/ → Deep Dive
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         setDeepDiveOpen(v => !v);
+        return;
+      }
+      // Cmd+K / Ctrl+K → Command Palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdPaletteOpen(v => !v);
         return;
       }
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -572,9 +583,9 @@ export const Terminal: React.FC = () => {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--bg-primary)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
 
-      {/* ── Header (36px) ──────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <Header
         selectedTicker={selectedTicker}
         selectedQuote={selectedQuote}
@@ -583,38 +594,20 @@ export const Terminal: React.FC = () => {
         fyersAuth={fyersAuth}
         onSelectTicker={handleSelectTicker}
         onNavigate={handleCommandNavigate}
+        onOpenPalette={() => setCmdPaletteOpen(true)}
       />
 
-      {/* ── Bloomberg CLI Command Bar (overlay, activated by ` key) ──── */}
-      <CommandBar
-        selectedTicker={selectedTicker}
-        onSelectTicker={handleSelectTicker}
-        onNavigate={handleCommandNavigate}
-      />
-
-      {/* ── Bloomberg Mnemonic CLI — always-visible command input (32px) ─ */}
-      <MnemonicCLI
-        activeTicker={selectedTicker}
-        activeMnemonic={activeMnemonic}
-        onMnemonicExec={handleMnemonicExec}
-        onTickerChange={(sym) => {
-          selectedTickerRef.current = sym;
-          setSelectedTicker(sym);
-          eventBus.emit('TICKER_CHANGE', { ticker: sym, source: 'CLI' });
-        }}
-      />
-
-      {/* ── Ticker marquee (22px) ────────────────────────────────────── */}
+      {/* ── Ticker marquee ──────────────────────────────────────────────── */}
       <TickerBar />
 
-      {/* ── Body: Sidebar + Main ─────────────────────────────────────── */}
+      {/* ── Body: Sidebar + Main ────────────────────────────────────────── */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
         <Sidebar
-          activeSection={activeSection}
           activeView={activeView}
           selectedTicker={selectedTicker}
           selectedQuote={selectedQuote}
-          onSectionChange={handleSectionChange}
+          collapsed={sidebarCollapsed}
+          onCollapse={setSidebarCollapsed}
           onViewChange={handleViewChange}
         />
 
@@ -643,7 +636,28 @@ export const Terminal: React.FC = () => {
 
       <AlertsToastContainer />
 
-      {/* ── Stock Deep Dive overlay (Ctrl+/ or sidebar click) ─────────── */}
+      {/* ── Command Palette (Cmd+K) ─────────────────────────────────────── */}
+      <MnemonicCLI
+        open={cmdPaletteOpen}
+        activeTicker={selectedTicker}
+        activeMnemonic={activeMnemonic}
+        onClose={() => setCmdPaletteOpen(false)}
+        onMnemonicExec={handleMnemonicExec}
+        onTickerChange={(sym) => {
+          selectedTickerRef.current = sym;
+          setSelectedTicker(sym);
+          eventBus.emit('TICKER_CHANGE', { ticker: sym, source: 'CLI' });
+        }}
+      />
+
+      {/* ── Legacy CommandBar (backtick overlay) ────────────────────────── */}
+      <CommandBar
+        selectedTicker={selectedTicker}
+        onSelectTicker={handleSelectTicker}
+        onNavigate={handleCommandNavigate}
+      />
+
+      {/* ── Stock Deep Dive overlay (Ctrl+/) ────────────────────────────── */}
       <Suspense fallback={null}>
         <StockDeepDive
           isOpen={deepDiveOpen}
@@ -660,7 +674,7 @@ export const Terminal: React.FC = () => {
   );
 };
 
-// ─── Header (memoized — re-renders only when ticker/quote/ws changes) ────────
+// ─── Header ───────────────────────────────────────────────────────────────────
 interface HeaderProps {
   selectedTicker: string;
   selectedQuote: Quote | null;
@@ -669,99 +683,88 @@ interface HeaderProps {
   fyersAuth: boolean | null;
   onSelectTicker: (sym: string) => void;
   onNavigate: (view: string) => void;
+  onOpenPalette: () => void;
 }
 
-const Header = memo<HeaderProps>(({ selectedTicker, selectedQuote, sentiment, wsConnected, fyersAuth, onSelectTicker, onNavigate }) => {
+const Header = memo<HeaderProps>(({
+  selectedTicker, selectedQuote, sentiment, wsConnected, fyersAuth,
+  onSelectTicker, onOpenPalette,
+}) => {
+  const regimeColor = sentiment?.regime === 'RISK_ON'
+    ? 'var(--green)' : sentiment?.regime === 'RISK_OFF'
+    ? 'var(--red)' : 'var(--amber)';
+
   return (
-    <div style={{
-      background: '#050505',
-      borderBottom: '1px solid #333',
-      padding: '0 10px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      flexShrink: 0,
-      height: 38,
-    }}>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-        <span style={{ color: 'var(--amber)', fontWeight: 900, fontSize: 16, letterSpacing: 3 }}>FD</span>
-        <span style={{ color: '#333', fontSize: 10, letterSpacing: 0.5 }}>FINANCIAL DASHBOARD</span>
+    <div className="bti-header">
+      {/* Brand */}
+      <div className="bti-header-brand">
+        <div className="bti-header-logo">B</div>
+        <span className="bti-header-name">
+          BTI <span>· Bloomberg Terminal India</span>
+        </span>
       </div>
 
-      <div style={{ width: 1, height: 20, background: '#2a2a2a', flexShrink: 0 }} />
+      <div className="bti-header-sep" />
 
-      {/* Ticker search */}
-      <TickerSearch onSelect={(sym) => onSelectTicker(sym)} />
-
-      {/* Live quote display */}
-      {selectedTicker && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', borderLeft: '1px solid #2a2a2a', flexShrink: 0 }}>
-          <span style={{ color: 'var(--amber)', fontWeight: 700, fontSize: 13 }}>{selectedTicker}</span>
-          {selectedQuote && (
-            <>
-              <span style={{ color: '#e8e8e0', fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                ₹{selectedQuote.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span style={{
-                color: selectedQuote.change_pct >= 0 ? 'var(--green)' : 'var(--red)',
-                fontSize: 12, fontWeight: 700,
-              }}>
-                {selectedQuote.change_pct >= 0 ? '▲' : '▼'}{Math.abs(selectedQuote.change_pct).toFixed(2)}%
-              </span>
-              <span style={{ color: '#555', fontSize: 10 }}>
-                H:{selectedQuote.high?.toFixed(0)} L:{selectedQuote.low?.toFixed(0)}
-              </span>
-            </>
-          )}
+      {/* Search + Command Palette */}
+      <div className="bti-header-mid">
+        <div className="bti-header-search">
+          <TickerSearch onSelect={onSelectTicker} />
         </div>
-      )}
+        <button className="bti-cmd-pill" onClick={onOpenPalette} title="Open command palette (Ctrl+K)">
+          ⌘ Mnemonics <kbd>K</kbd>
+        </button>
+      </div>
 
       <div style={{ flex: 1 }} />
 
-      {/* Regime */}
-      {sentiment?.regime && (
-        <span style={{
-          fontSize: 10, fontWeight: 700, padding: '2px 7px',
-          color: sentiment.regime === 'RISK_ON' ? 'var(--green)' : sentiment.regime === 'RISK_OFF' ? 'var(--red)' : 'var(--amber)',
-          border: `1px solid ${sentiment.regime === 'RISK_ON' ? 'var(--green-dim)' : sentiment.regime === 'RISK_OFF' ? 'var(--red-dim)' : 'var(--amber-dim)'}`,
-          background: sentiment.regime === 'RISK_ON' ? 'rgba(0,200,83,0.05)' : sentiment.regime === 'RISK_OFF' ? 'rgba(255,61,0,0.05)' : 'rgba(255,149,0,0.05)',
-        }}>
-          {sentiment.regime}
-        </span>
-      )}
+      {/* Right cluster */}
+      <div className="bti-header-right">
+        {/* Selected ticker mini-quote */}
+        {selectedTicker && selectedQuote && (
+          <div className="bti-quote-chip">
+            <span className="bti-quote-sym">{selectedTicker}</span>
+            <span className="bti-quote-prc">
+              ₹{selectedQuote.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span className="bti-quote-chg" style={{ color: selectedQuote.change_pct >= 0 ? 'var(--green)' : 'var(--red)' }}>
+              {selectedQuote.change_pct >= 0 ? '▲' : '▼'}{Math.abs(selectedQuote.change_pct).toFixed(2)}%
+            </span>
+          </div>
+        )}
 
-      {/* Fyers status — orange reconnect button when offline */}
-      {fyersAuth === false && (
-        <a
-          href="http://127.0.0.1:8000/api/fyers/login"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            fontSize: 9, fontWeight: 700, padding: '2px 7px', textDecoration: 'none',
-            color: 'var(--amber)', border: '1px solid var(--amber-dim)',
-            background: 'rgba(255,149,0,0.08)', borderRadius: 2, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 3,
-          }}
-          title="Fyers token expired — click to re-authenticate for real-time ticks"
-        >
-          ⚡ FYERS OFFLINE — RECONNECT
-        </a>
-      )}
-      {fyersAuth === true && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-          <span className="status-dot ok" />
-          <span style={{ fontSize: 9, color: 'var(--green)' }}>FYERS</span>
+        {/* Market regime */}
+        {sentiment?.regime && (
+          <span
+            className="bti-regime-badge"
+            style={{ color: regimeColor, borderColor: regimeColor, background: `${regimeColor}15` }}
+          >
+            {sentiment.regime.replace('_', ' ')}
+          </span>
+        )}
+
+        {/* Status cluster */}
+        <div className="bti-status-cluster">
+          {fyersAuth === false && (
+            <a href="http://127.0.0.1:8000/api/fyers/login" target="_blank" rel="noopener noreferrer"
+              className="bti-reconnect-btn" title="Fyers token expired">
+              ⚡ Reconnect
+            </a>
+          )}
+          {fyersAuth === true && (
+            <div className="bti-status-item">
+              <span className="status-dot ok" />
+              <span>Fyers</span>
+            </div>
+          )}
+          <div className="bti-status-item">
+            <span className={`status-dot ${wsConnected ? 'ok' : 'dead'}`} />
+            <span>{wsConnected ? 'Live' : 'Offline'}</span>
+          </div>
         </div>
-      )}
 
-      {/* WS status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span className={`status-dot ${wsConnected ? 'ok' : 'dead'}`} />
-        <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{wsConnected ? 'LIVE' : 'OFFLINE'}</span>
+        <Clock />
       </div>
-
-      <Clock />
     </div>
   );
 });
